@@ -1,0 +1,45 @@
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+import requests
+import csv
+import re
+
+
+url = 'https://www.census.gov/programs-surveys/popest.html'
+html_url = requests.get(url).text
+soup = BeautifulSoup(html_url, "lxml")
+
+url_list = []
+    
+for l in soup.find_all('a'):
+    url_list.append(l.get('href'))
+    mylist = []
+    for d in url_list:
+        if d not in mylist:
+            mylist.append(d)
+
+    with open("C996t1.csv", "w", newline="") as f:
+        writer = csv.writer(f, delimiter = ',')
+        abs_URL = []
+        rel_URL = [] 
+        results = []
+
+        for elem in mylist:
+            if isinstance(elem, str):
+
+                if elem.startswith("http"):
+                    abs_link = elem
+                    abs_URL.append(abs_link)
+                else:
+                    rel_link = "https://www.census.gov" + elem
+                    rel_URL.append(rel_link)
+
+        results = abs_URL + rel_URL
+
+        for j in abs_URL:
+            if j in rel_URL:
+                dup = j
+                results.remove(dup)
+        
+        for r in results:     
+            writer.writerow([r])      
